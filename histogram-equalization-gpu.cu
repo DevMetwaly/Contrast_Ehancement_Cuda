@@ -113,9 +113,6 @@ void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in,
     int *lut =  (int *)malloc(nbr_bin * sizeof(int));
     cudaMemcpy(lut, d_LUT, sizeof(int) * nbr_bin, cudaMemcpyDeviceToHost);
 
-    //printf("LUT\n");
-    //for(int i=0;i<256;i++) printf("%d ",lut[i]);
-    //printf("\n");
     threadsPerBlock = 1024;
     blocksPerGrid = (img_size + threadsPerBlock - 1) / threadsPerBlock;
     
@@ -124,10 +121,6 @@ void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in,
 
     // Copy result from device to host memory
     cudaMemcpy(img_out, d_outimg, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
-    
-    //printf("img out in equalization\n");
-    //for(int i=0;i<256;i++) printf("%d ",img_out[i]);
-    //printf("\n");
 
     // Free up host memory
     free(CDF);

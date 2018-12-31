@@ -34,52 +34,25 @@ void run_gpu_color_test(PPM_IMG img_in)
 
 void run_gpu_gray_test(PGM_IMG img_in)
 {
-    unsigned int timer = 0;
     PGM_IMG img_obuf;
 
     printf("Starting GPU processing...\n");
     
     img_obuf = contrast_enhancement_g_gpu(img_in);
-    
-    /*printf("img in\n");
-    for(int i=0;i<256;i++) printf("%d ",img_in.img[i]);
-    printf("\n");
-    printf("img out\n");
-    for(int i=0;i<256;i++) printf("%d ",img_obuf.img[i]);
-    printf("\n");
-    
-    printf("Len: %d\n",(sizeof(img_obuf.img)/sizeof(unsigned char)));*/
-
-    printf("img out in contrast\n");
-    for(int i=1000;i<2000;i++) printf("%d ",img_obuf.img[i]);
-    printf("\n");
     write_pgm(img_obuf, "out_gpu1.pgm");
     free_pgm(img_obuf);
 }
 
 void run_cpu_color_test(PPM_IMG img_in)
 {
-    unsigned int timer = 0;
     PPM_IMG img_obuf_hsl, img_obuf_yuv;
     
     printf("Starting CPU processing...\n");
-    
-    //cutilCheckError(cutCreateTimer(&timer));
-    //cutilCheckError(cutStartTimer(timer));
+   
     img_obuf_hsl = contrast_enhancement_c_hsl(img_in);
-    //cutilCheckError(cutStopTimer(timer));
-    //printf("HSL processing time: %f (ms)\n", cutGetTimerValue(timer));
-    //cutilCheckError(cutDeleteTimer(timer));
-    
     write_ppm(img_obuf_hsl, "out_hsl.ppm");
 
-    //cutilCheckError(cutCreateTimer(&timer));
-    //cutilCheckError(cutStartTimer(timer));
     img_obuf_yuv = contrast_enhancement_c_yuv(img_in);
-    //cutilCheckError(cutStopTimer(timer));
-    //printf("YUV processing time: %f (ms)\n", cutGetTimerValue(timer));
-    //cutilCheckError(cutDeleteTimer(timer));
-    
     write_ppm(img_obuf_yuv, "out_yuv.ppm");
     
     free_ppm(img_obuf_hsl);
@@ -91,31 +64,12 @@ void run_cpu_color_test(PPM_IMG img_in)
 
 void run_cpu_gray_test(PGM_IMG img_in)
 {
-    unsigned int timer = 0;
+
     PGM_IMG img_obuf;
-    
     
     printf("Starting CPU processing...\n");
     
-    //cutilCheckError(cutCreateTimer(&timer));
-    //cutilCheckError(cutStartTimer(timer));
     img_obuf = contrast_enhancement_g(img_in);
-    //cutilCheckError(cutStopTimer(timer));
-    //printf("Processing time: %f (ms)\n", cutGetTimerValue(timer));
-    //cutilCheckError(cutDeleteTimer(timer));
-
-    /*printf("img in cpu\n");
-    for(int i=0;i<256;i++) printf("%d ",img_in.img[i]);
-    printf("\n");
-
-    printf("img out cpu\n");
-    for(int i=0;i<256;i++) printf("%d ",img_obuf.img[i]);
-    printf("\n");
-
-    printf("Len: %d\n",(sizeof(img_obuf.img)/sizeof(unsigned char)));*/
-    printf("CPU img out in contrast\n");
-    for(int i=1000;i<2000;i++) printf("%d ",img_obuf.img[i]);
-    printf("\n");
     write_pgm(img_obuf, "out.pgm");
     free_pgm(img_obuf);
 }
