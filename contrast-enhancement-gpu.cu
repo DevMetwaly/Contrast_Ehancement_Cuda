@@ -43,7 +43,11 @@ PPM_IMG contrast_enhancement_c_yuv_gpu(PPM_IMG img_in)
 	cudaMalloc(&d_y, s * sizeof(unsigned char));
     cudaMalloc(&d_u, s * sizeof(unsigned char));
     cudaMalloc(&d_v, s * sizeof(unsigned char));
-		
+    // DEVICE RGB ALLOCATION
+    cudaMalloc(&d_r, s * sizeof(unsigned char));
+    cudaMalloc(&d_g, s * sizeof(unsigned char));
+    cudaMalloc(&d_b, s * sizeof(unsigned char));
+
 	cudaMemcpy(d_r, &img_in.img_r, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
     cudaMemcpy(d_g, &img_in.img_g, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, &img_in.img_b, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
@@ -83,29 +87,33 @@ PPM_IMG contrast_enhancement_c_hsl_gpu(PPM_IMG img_in)
     HSL_IMG hsl_med;
     PPM_IMG result;
     
-    unsigned char * d_h;
-    unsigned char * d_s;
+    float * d_h;
+    float * d_s;
     unsigned char * d_l;
 
     unsigned char * d_r;
     unsigned char * d_g;
     unsigned char * d_b;
 
-    unsigned char s = img_in.width * img_in.height ;
+    unsigned char s = img_in.w * img_in.h ;
 
     unsigned char * l_equ;
     int hist[256];
 
     // HOST HSL ALLOCATION
-    hsl_med.h = (unsigned char *)malloc(sizeof(unsigned char)*s);
-    hsl_med.s = (unsigned char *)malloc(sizeof(unsigned char)*s);
+    hsl_med.h = (float *)malloc(sizeof(float)*s);
+    hsl_med.s = (float *)malloc(sizeof(float)*s);
     hsl_med.l = (unsigned char *)malloc(sizeof(unsigned char)*s);
     
     // DEVICE HSL ALLOCATION
-    cudaMalloc(&d_h, s * sizeof(unsigned char));
-    cudaMalloc(&d_s, s * sizeof(unsigned char));
+    cudaMalloc(&d_h, s * sizeof(float));
+    cudaMalloc(&d_s, s * sizeof(float));
     cudaMalloc(&d_l, s * sizeof(unsigned char));
-        
+    // DEVICE RGB ALLOCATION
+    cudaMalloc(&d_r, s * sizeof(unsigned char));
+    cudaMalloc(&d_g, s * sizeof(unsigned char));
+    cudaMalloc(&d_b, s * sizeof(unsigned char));
+
     cudaMemcpy(d_r, &img_in.img_r, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
     cudaMemcpy(d_g, &img_in.img_g, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, &img_in.img_b, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
@@ -270,4 +278,15 @@ __global__ void hsl2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g
     img_r[i] = r;
     img_g[i] = g;
     img_b[i] = b;
+}
+
+
+float Hue_2_RGB( float v1, float v2, float vH )
+{
+    if ( vH < 0 ) vH += 1;
+    if ( vH > 1 ) vH -= 1;
+    if ( ( 6 * vH ) < 1 ) return ( v1 + ( v2 - v1 ) * 6 * vH );
+    if ( ( 2 * vH ) < 1 ) return ( v2 );
+    if ( ( 3 * vH ) < 2 ) return ( v1 + ( v2 - v1 ) * ( ( 2.0f/3.0f ) - vH ) * 6 );
+    return ( v1 );
 }
