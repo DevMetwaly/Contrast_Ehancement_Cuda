@@ -3,7 +3,7 @@ using namespace std;
 
 
 __global__ 
-void histogram_kernal(int * hist_out, unsigned char * img_in, int img_size){   
+void histogram_kernel(int * hist_out, unsigned char * img_in, int img_size){   
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     
     if (i < img_size) atomicAdd(&hist_out[img_in[i]], 1);    
@@ -11,7 +11,7 @@ void histogram_kernal(int * hist_out, unsigned char * img_in, int img_size){
 
 
 __global__
-void clean_kernal(int *hist_out,int size){
+void clean_kernel(int *hist_out,int size){
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     
     if (i < size) hist_out[i] = 0;    
@@ -29,13 +29,13 @@ void histogram_gpu(int * hist_out, unsigned char * img_in, int img_size, int nbr
     
     int threadsPerBlock = 256;
     int blocksPerGrid =(nbr_bin + threadsPerBlock - 1) / threadsPerBlock;
-    clean_kernal<<<blocksPerGrid, threadsPerBlock>>>(d_hist_out, nbr_bin);
+    clean_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_hist_out, nbr_bin);
     
     cudaDeviceSynchronize();
     
     threadsPerBlock = 256;
     blocksPerGrid =(img_size + threadsPerBlock - 1) / threadsPerBlock;
-    histogram_kernal<<<blocksPerGrid, threadsPerBlock>>>(d_hist_out, d_img_in, img_size);
+    histogram_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_hist_out, d_img_in, img_size);
 
     cudaDeviceSynchronize();
 
@@ -113,9 +113,6 @@ void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in,
     int *lut =  (int *)malloc(nbr_bin * sizeof(int));
     cudaMemcpy(lut, d_LUT, sizeof(int) * nbr_bin, cudaMemcpyDeviceToHost);
 
-    //printf("LUT\n");
-    //for(int i=0;i<256;i++) printf("%d ",lut[i]);
-    //printf("\n");
     threadsPerBlock = 1024;
     blocksPerGrid = (img_size + threadsPerBlock - 1) / threadsPerBlock;
     
@@ -124,10 +121,6 @@ void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in,
 
     // Copy result from device to host memory
     cudaMemcpy(img_out, d_outimg, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
-    
-    //printf("img out in equalization\n");
-    //for(int i=0;i<256;i++) printf("%d ",img_out[i]);
-    //printf("\n");
 
     // Free up host memory
     free(CDF);
