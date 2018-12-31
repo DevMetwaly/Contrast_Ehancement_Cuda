@@ -92,9 +92,9 @@ __global__ void rgb2yuv_kernel(int s, unsigned char *img_r, unsigned char *img_g
 __global__ void yuv2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
     unsigned char *img_y, unsigned char *img_u, unsigned char *img_v);
 __global__ void rgb2hsl_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
-    unsigned char *img_h, unsigned char *img_s, unsigned char *img_l);
+    float *img_h, float *img_s, unsigned char *img_l);
 __global__ void hsl2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
-    unsigned char *img_h, unsigned char *img_s, unsigned char *img_l);
+    float *img_h, float *img_s, unsigned char *img_l);
 	
 
 #endif
