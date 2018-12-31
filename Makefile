@@ -36,11 +36,11 @@
 # Add source files here
 EXECUTABLE	:= 5kk70-assignment-gpu
 # Cuda source files (compiled with cudacc)
-CUFILES		:= 
+CUFILES		:= contrast-enhancement-gpu.cu histogram-equalization-gpu.cu
 # C/C++ source files (compiled with gcc / c++)
 CCFILES		:= main.cpp histogram-equalization.cpp contrast-enhancement.cpp
 
 ################################################################################
 # Rules and targets
 
-include ../../common/common.mk
+include /usr/local/cuda-9.2/samples/common/inc

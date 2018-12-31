@@ -3,44 +3,46 @@ using namespace std;
 
 
 __global__ 
-void histogram_kernal(unsigned int * hist_out, unsigned char * img_in, int img_size){   
+void histogram_kernal(int * hist_out, unsigned char * img_in, int img_size){   
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < img_size)
-    {
-        atomicAdd( &(hist_out[img_in[i]]), 1);
-    }
+    
+    if (i < img_size) atomicAdd(&hist_out[img_in[i]], 1);    
 }
 
 
 __global__
-void clean_kernal(unsigned int *hist_out,int size){
+void clean_kernal(int *hist_out,int size){
     int i = blockDim.x * blockIdx.x + threadIdx.x;
+    
     if (i < size) hist_out[i] = 0;    
 }
 
 
 void histogram_gpu(int * hist_out, unsigned char * img_in, int img_size, int nbr_bin){
-    unsigned char *d_img_in = NULL;
-    unsigned int *d_hist_out = NULL;
+    unsigned char *d_img_in;
+    int *d_hist_out;
 
-    cudaMalloc((void **)&d_img_in, img_size*sizeof(unsigned char));
-    cudaMalloc((void **)&d_hist_out, nbr_bin*sizeof(unsigned int));
+    cudaMalloc(&d_img_in, img_size*sizeof(unsigned char));
+    cudaMalloc(&d_hist_out, nbr_bin*sizeof(int));
     cudaMemcpy(d_img_in, img_in, img_size*sizeof(unsigned char), cudaMemcpyHostToDevice);
 
     
     int threadsPerBlock = 256;
     int blocksPerGrid =(nbr_bin + threadsPerBlock - 1) / threadsPerBlock;
     clean_kernal<<<blocksPerGrid, threadsPerBlock>>>(d_hist_out, nbr_bin);
-
+    
     cudaDeviceSynchronize();
     
     threadsPerBlock = 256;
     blocksPerGrid =(img_size + threadsPerBlock - 1) / threadsPerBlock;
     histogram_kernal<<<blocksPerGrid, threadsPerBlock>>>(d_hist_out, d_img_in, img_size);
 
-    cudaMemcpy(hist_out, d_hist_out, nbr_bin, cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(hist_out, d_hist_out, sizeof(int)*nbr_bin, cudaMemcpyDeviceToHost);
     cudaFree(d_img_in);
     cudaFree(d_hist_out);
+    return;
 }
 
 
@@ -66,16 +68,16 @@ void genLUT_kernel(int* LUT, int* CDF, int CDFmin, int imgSize, int L){
 
 
 __global__
-void genResultImg_kernel(unsigned char* outimg, unsigned char* img, int* LUT, int imgSize, int L){
+void genResultImg_kernel(unsigned char* outimg, unsigned char* img, int* LUT, int imgSize){
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    if(idx < L) outimg[idx] = LUT[img[idx]];
+    if(idx < imgSize) outimg[idx] = (unsigned char)LUT[img[idx]];
 
 }
 
 
 void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in, 
-                            int * hist_in, int img_size, int nbr_bin){
+                             int * hist_in, int img_size, int nbr_bin){
 
     int *CDF = (int *) malloc(sizeof(int) * nbr_bin);
     CDF[0] = hist_in[0];
@@ -91,10 +93,10 @@ void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in,
     unsigned char *d_img;
 
     // Allocate memory for device variables
-    cudaMalloc((void **) &d_LUT, sizeof(int) * nbr_bin);
-    cudaMalloc((void **) &d_CDF, sizeof(int) * nbr_bin);
-    cudaMalloc((void **) &d_outimg, sizeof(unsigned char) * img_size);
-    cudaMalloc((void **) &d_img, sizeof(unsigned char) * img_size);
+    cudaMalloc(&d_LUT, sizeof(int) * nbr_bin);
+    cudaMalloc(&d_CDF, sizeof(int) * nbr_bin);
+    cudaMalloc(&d_outimg, sizeof(unsigned char) * img_size);
+    cudaMalloc(&d_img, sizeof(unsigned char) * img_size);
 
     // Copy data to device memory
     cudaMemcpy(d_CDF, CDF, sizeof(int) * nbr_bin, cudaMemcpyHostToDevice);
@@ -108,12 +110,24 @@ void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in,
         
     cudaDeviceSynchronize();
     
+    int *lut =  (int *)malloc(nbr_bin * sizeof(int));
+    cudaMemcpy(lut, d_LUT, sizeof(int) * nbr_bin, cudaMemcpyDeviceToHost);
+
+    //printf("LUT\n");
+    //for(int i=0;i<256;i++) printf("%d ",lut[i]);
+    //printf("\n");
+    threadsPerBlock = 1024;
+    blocksPerGrid = (img_size + threadsPerBlock - 1) / threadsPerBlock;
+    
     /// Call genResultImg kernel here
-    genResultImg_kernel<<<blocksPerGrid , threadsPerBlock>>>(d_outimg, d_img, d_LUT, img_size, nbr_bin);
+    genResultImg_kernel<<<blocksPerGrid , threadsPerBlock>>>(d_outimg, d_img, d_LUT, img_size);
 
     // Copy result from device to host memory
     cudaMemcpy(img_out, d_outimg, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
     
+    //printf("img out in equalization\n");
+    //for(int i=0;i<256;i++) printf("%d ",img_out[i]);
+    //printf("\n");
 
     // Free up host memory
     free(CDF);

@@ -41,7 +41,19 @@ void run_gpu_gray_test(PGM_IMG img_in)
     
     img_obuf = contrast_enhancement_g_gpu(img_in);
     
-    write_pgm(img_obuf, "out_gpu.pgm");
+    /*printf("img in\n");
+    for(int i=0;i<256;i++) printf("%d ",img_in.img[i]);
+    printf("\n");
+    printf("img out\n");
+    for(int i=0;i<256;i++) printf("%d ",img_obuf.img[i]);
+    printf("\n");
+    
+    printf("Len: %d\n",(sizeof(img_obuf.img)/sizeof(unsigned char)));*/
+
+    printf("img out in contrast\n");
+    for(int i=1000;i<2000;i++) printf("%d ",img_obuf.img[i]);
+    printf("\n");
+    write_pgm(img_obuf, "out_gpu1.pgm");
     free_pgm(img_obuf);
 }
 
@@ -91,7 +103,19 @@ void run_cpu_gray_test(PGM_IMG img_in)
     //cutilCheckError(cutStopTimer(timer));
     //printf("Processing time: %f (ms)\n", cutGetTimerValue(timer));
     //cutilCheckError(cutDeleteTimer(timer));
-    
+
+    /*printf("img in cpu\n");
+    for(int i=0;i<256;i++) printf("%d ",img_in.img[i]);
+    printf("\n");
+
+    printf("img out cpu\n");
+    for(int i=0;i<256;i++) printf("%d ",img_obuf.img[i]);
+    printf("\n");
+
+    printf("Len: %d\n",(sizeof(img_obuf.img)/sizeof(unsigned char)));*/
+    printf("CPU img out in contrast\n");
+    for(int i=1000;i<2000;i++) printf("%d ",img_obuf.img[i]);
+    printf("\n");
     write_pgm(img_obuf, "out.pgm");
     free_pgm(img_obuf);
 }
@@ -198,7 +222,7 @@ PGM_IMG read_pgm(const char * path){
 
 void write_pgm(PGM_IMG img, const char * path){
     FILE * out_file;
-    out_file = fopen(path, "wb");
+    out_file = fopen(path, "wb+");
     fprintf(out_file, "P5\n");
     fprintf(out_file, "%d %d\n255\n",img.w, img.h);
     fwrite(img.img,sizeof(unsigned char), img.w*img.h, out_file);

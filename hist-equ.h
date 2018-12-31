@@ -65,8 +65,8 @@ PGM_IMG contrast_enhancement_g_gpu(PGM_IMG img_in);
 void histogram_gpu(int * hist_out, unsigned char * img_in, int img_size, int nbr_bin);
 void histogram_equalization_gpu(unsigned char * img_out, unsigned char * img_in, 
                             int * hist_in, int img_size, int nbr_bin);
-__global__ void histogram_kernal(unsigned int * hist_out, unsigned char * img_in, int img_size);
-__global__ void clean_kernal(unsigned int *hist_out,int size);
+__global__ void histogram_kernal(int * hist_out, unsigned char * img_in, int img_size);
+__global__ void clean_kernal(int *hist_out,int size);
 
 __global__ void genLUT_kernel(int* LUT, int* CDF, int CDFmin, int imgSize, int L);
 __global__ void genResultImg_kernel(unsigned char* outimg, unsigned char* img, int* LUT, int imgSize, int L);
