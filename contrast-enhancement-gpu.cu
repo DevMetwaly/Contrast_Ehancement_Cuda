@@ -271,9 +271,9 @@ __global__ void hsl2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g
             var_2 = ( L + S ) - ( S * L );
 
         var_1 = 2 * L - var_2;
-        r = 255 * Hue_2_RGB( var_1, var_2, H + (1.0f/3.0f) );
-        g = 255 * Hue_2_RGB( var_1, var_2, H );
-        b = 255 * Hue_2_RGB( var_1, var_2, H - (1.0f/3.0f) );
+        r = 255 * Hue_2_RGB_gpu( var_1, var_2, H + (1.0f/3.0f) );
+        g = 255 * Hue_2_RGB_gpu( var_1, var_2, H );
+        b = 255 * Hue_2_RGB_gpu( var_1, var_2, H - (1.0f/3.0f) );
     }
     img_r[i] = r;
     img_g[i] = g;
@@ -281,7 +281,7 @@ __global__ void hsl2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g
 }
 
 __device__
-float Hue_2_RGB( float v1, float v2, float vH )
+float Hue_2_RGB_gpu( float v1, float v2, float vH )
 {
     if ( vH < 0 ) vH += 1;
     if ( vH > 1 ) vH -= 1;

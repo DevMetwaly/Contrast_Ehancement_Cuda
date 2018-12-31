@@ -85,7 +85,7 @@ PPM_IMG contrast_enhancement_c_yuv_gpu(PPM_IMG img_in);
 PPM_IMG contrast_enhancement_c_hsl_gpu(PPM_IMG img_in);
 
 __device__
-float Hue_2_RGB( float v1, float v2, float vH );
+float Hue_2_RGB_gpu( float v1, float v2, float vH );
 
 // Transformation kernels
 __global__ void rgb2yuv_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
