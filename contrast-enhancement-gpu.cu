@@ -280,7 +280,7 @@ __global__ void hsl2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g
     img_b[i] = b;
 }
 
-
+__device__
 float Hue_2_RGB( float v1, float v2, float vH )
 {
     if ( vH < 0 ) vH += 1;
