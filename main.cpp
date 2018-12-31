@@ -28,8 +28,15 @@ int main(){
 void run_gpu_color_test(PPM_IMG img_in)
 {
     printf("Starting GPU processing...\n");
-    //TODO: run your GPU implementation here
-    img_in = img_in; // To avoid warning...
+   
+    img_obuf_hsl = contrast_enhancement_c_hsl_gpu(img_in);
+    write_ppm(img_obuf_hsl, "out_hsl_gpu.ppm");
+
+    img_obuf_yuv = contrast_enhancement_c_yuv_gpu(img_in);
+    write_ppm(img_obuf_yuv, "out_yuv_gpu.ppm");
+    
+    free_ppm(img_obuf_hsl);
+    free_ppm(img_obuf_yuv);
 }
 
 void run_gpu_gray_test(PGM_IMG img_in)
@@ -39,7 +46,7 @@ void run_gpu_gray_test(PGM_IMG img_in)
     printf("Starting GPU processing...\n");
     
     img_obuf = contrast_enhancement_g_gpu(img_in);
-    write_pgm(img_obuf, "out_gpu1.pgm");
+    write_pgm(img_obuf, "out_gpu.pgm");
     free_pgm(img_obuf);
 }
 
