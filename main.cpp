@@ -27,6 +27,7 @@ int main(){
 
 void run_gpu_color_test(PPM_IMG img_in)
 {
+    PPM_IMG img_obuf_hsl, img_obuf_yuv;
     printf("Starting GPU processing...\n");
    
     img_obuf_hsl = contrast_enhancement_c_hsl_gpu(img_in);
