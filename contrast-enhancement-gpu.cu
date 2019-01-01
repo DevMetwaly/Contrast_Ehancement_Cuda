@@ -29,48 +29,48 @@ PPM_IMG contrast_enhancement_c_yuv_gpu(PPM_IMG img_in)
     unsigned char * d_g;
     unsigned char * d_b;
 	
-	unsigned char s = img_in.w * img_in.h ; 
+	unsigned char img_size = img_in.w * img_in.h ; 
 	
     unsigned char * y_equ;
     int hist[256];
     
 	// HOST YUV ALLOCATION
-    yuv_med.img_y = (unsigned char *)malloc(sizeof(unsigned char)*s);
-    yuv_med.img_u = (unsigned char *)malloc(sizeof(unsigned char)*s);
-    yuv_med.img_v = (unsigned char *)malloc(sizeof(unsigned char)*s);
+    yuv_med.img_y = (unsigned char *)malloc(sizeof(unsigned char)*img_size);
+    yuv_med.img_u = (unsigned char *)malloc(sizeof(unsigned char)*img_size);
+    yuv_med.img_v = (unsigned char *)malloc(sizeof(unsigned char)*img_size);
 	
 	// DEVICE YUV ALLOCATION
-	cudaMalloc(&d_y, s * sizeof(unsigned char));
-    cudaMalloc(&d_u, s * sizeof(unsigned char));
-    cudaMalloc(&d_v, s * sizeof(unsigned char));
+	cudaMalloc(&d_y, img_size * sizeof(unsigned char));
+    cudaMalloc(&d_u, img_size * sizeof(unsigned char));
+    cudaMalloc(&d_v, img_size * sizeof(unsigned char));
     // DEVICE RGB ALLOCATION
-    cudaMalloc(&d_r, s * sizeof(unsigned char));
-    cudaMalloc(&d_g, s * sizeof(unsigned char));
-    cudaMalloc(&d_b, s * sizeof(unsigned char));
+    cudaMalloc(&d_r, img_size * sizeof(unsigned char));
+    cudaMalloc(&d_g, img_size * sizeof(unsigned char));
+    cudaMalloc(&d_b, img_size * sizeof(unsigned char));
 
-	cudaMemcpy(d_r, &img_in.img_r, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_g, &img_in.img_g, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, &img_in.img_b, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_r, &img_in.img_r, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_g, &img_in.img_g, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, &img_in.img_b, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
 	
 	int threadsPerBlock = 256;
-    int blocksPerGrid = (256 + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (img_size + threadsPerBlock - 1) / threadsPerBlock;
 	
-	rgb2yuv_kernel<<<blocksPerGrid , threadsPerBlock>>>(s, d_r, d_g, d_b, d_y, d_u, d_v);
+	rgb2yuv_kernel<<<blocksPerGrid , threadsPerBlock>>>(img_size, d_r, d_g, d_b, d_y, d_u, d_v);
 	
-	cudaMemcpy(&yuv_med.img_y, d_y, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
-	y_equ = (unsigned char *)malloc(s * sizeof(unsigned char));
+	cudaMemcpy(&yuv_med.img_y, d_y, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
+	y_equ = (unsigned char *)malloc(img_size * sizeof(unsigned char));
 	
-    histogram_gpu(hist, yuv_med.img_y, s, 256);
-    histogram_equalization_gpu(y_equ, yuv_med.img_y, hist, s, 256);
+    histogram_gpu(hist, yuv_med.img_y, img_size, 256);
+    histogram_equalization_gpu(y_equ, yuv_med.img_y, hist, img_size, 256);
 
     free(yuv_med.img_y);
     yuv_med.img_y = y_equ;
-    cudaMemcpy(d_y, &yuv_med.img_y, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_y, &yuv_med.img_y, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
 	
-    yuv2rgb_kernel<<<blocksPerGrid , threadsPerBlock>>>(s, d_r, d_g, d_b, d_y, d_u, d_v);
-	cudaMemcpy(&result.img_r, d_r, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
-    cudaMemcpy(&result.img_g, d_g, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
-    cudaMemcpy(&result.img_b, d_b, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
+    yuv2rgb_kernel<<<blocksPerGrid , threadsPerBlock>>>(img_size, d_r, d_g, d_b, d_y, d_u, d_v);
+	cudaMemcpy(&result.img_r, d_r, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(&result.img_g, d_g, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(&result.img_b, d_b, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
 	
     free(yuv_med.img_y);
     free(yuv_med.img_u);
@@ -95,48 +95,48 @@ PPM_IMG contrast_enhancement_c_hsl_gpu(PPM_IMG img_in)
     unsigned char * d_g;
     unsigned char * d_b;
 
-    unsigned char s = img_in.w * img_in.h ;
+    unsigned char img_size = img_in.w * img_in.h ;
 
     unsigned char * l_equ;
     int hist[256];
 
     // HOST HSL ALLOCATION
-    hsl_med.h = (float *)malloc(sizeof(float)*s);
-    hsl_med.s = (float *)malloc(sizeof(float)*s);
-    hsl_med.l = (unsigned char *)malloc(sizeof(unsigned char)*s);
+    hsl_med.h = (float *)malloc(sizeof(float)*img_size);
+    hsl_med.s = (float *)malloc(sizeof(float)*img_size);
+    hsl_med.l = (unsigned char *)malloc(sizeof(unsigned char)*img_size);
     
     // DEVICE HSL ALLOCATION
-    cudaMalloc(&d_h, s * sizeof(float));
-    cudaMalloc(&d_s, s * sizeof(float));
-    cudaMalloc(&d_l, s * sizeof(unsigned char));
+    cudaMalloc(&d_h, img_size * sizeof(float));
+    cudaMalloc(&d_s, img_size * sizeof(float));
+    cudaMalloc(&d_l, img_size * sizeof(unsigned char));
     // DEVICE RGB ALLOCATION
-    cudaMalloc(&d_r, s * sizeof(unsigned char));
-    cudaMalloc(&d_g, s * sizeof(unsigned char));
-    cudaMalloc(&d_b, s * sizeof(unsigned char));
+    cudaMalloc(&d_r, img_size * sizeof(unsigned char));
+    cudaMalloc(&d_g, img_size * sizeof(unsigned char));
+    cudaMalloc(&d_b, img_size * sizeof(unsigned char));
 
-    cudaMemcpy(d_r, &img_in.img_r, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_g, &img_in.img_g, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, &img_in.img_b, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_r, &img_in.img_r, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_g, &img_in.img_g, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, &img_in.img_b, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
     
     int threadsPerBlock = 256;
-    int blocksPerGrid = (256 + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (img_size + threadsPerBlock - 1) / threadsPerBlock;
     
-    rgb2hsl_kernel<<<blocksPerGrid , threadsPerBlock>>>(s, d_r, d_g, d_b, d_h, d_s, d_l);
+    rgb2hsl_kernel<<<blocksPerGrid , threadsPerBlock>>>(img_size, d_r, d_g, d_b, d_h, d_s, d_l);
     
-    cudaMemcpy(&hsl_med.l, d_l, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
-    l_equ = (unsigned char *)malloc(s * sizeof(unsigned char));
+    cudaMemcpy(&hsl_med.l, d_l, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
+    l_equ = (unsigned char *)malloc(img_size * sizeof(unsigned char));
     
-    histogram_gpu(hist, hsl_med.l, s, 256);
-    histogram_equalization_gpu(l_equ, hsl_med.l, hist, s, 256);
+    histogram_gpu(hist, hsl_med.l, img_size, 256);
+    histogram_equalization_gpu(l_equ, hsl_med.l, hist, img_size, 256);
 
     free(hsl_med.l);
     hsl_med.l = l_equ;
-    cudaMemcpy(d_l, &hsl_med.l, sizeof(unsigned char) * s, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_l, &hsl_med.l, sizeof(unsigned char) * img_size, cudaMemcpyHostToDevice);
     
-    hsl2rgb_kernel<<<blocksPerGrid , threadsPerBlock>>>(s, d_r, d_g, d_b, d_h, d_s, d_l);
-    cudaMemcpy(&result.img_r, d_r, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
-    cudaMemcpy(&result.img_g, d_g, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
-    cudaMemcpy(&result.img_b, d_b, sizeof(unsigned char) * s, cudaMemcpyDeviceToHost);
+    hsl2rgb_kernel<<<blocksPerGrid , threadsPerBlock>>>(img_size, d_r, d_g, d_b, d_h, d_s, d_l);
+    cudaMemcpy(&result.img_r, d_r, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(&result.img_g, d_g, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(&result.img_b, d_b, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost);
     
     free(hsl_med.h);
     free(hsl_med.s);
@@ -148,12 +148,12 @@ PPM_IMG contrast_enhancement_c_hsl_gpu(PPM_IMG img_in)
 }
 
 
-__global__ void rgb2yuv_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
+__global__ void rgb2yuv_kernel(int img_size, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
     unsigned char *img_y, unsigned char *img_u, unsigned char *img_v) {
 
     int i = threadIdx.x + blockDim.x * blockIdx.x;
 
-    if(i < s){
+    if(i < img_size){
         int r, g, b;
         r = img_r[i];
         g = img_g[i];
@@ -165,13 +165,13 @@ __global__ void rgb2yuv_kernel(int s, unsigned char *img_r, unsigned char *img_g
     }
 }
 
-__global__ void yuv2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
+__global__ void yuv2rgb_kernel(int img_size, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
     unsigned char *img_y, unsigned char *img_u, unsigned char *img_v){
 
         int i = threadIdx.x + blockDim.x*blockIdx.x;
         unsigned char y, cb, cr;
         
-        if(i < s){
+        if(i < img_size){
 
             y  = img_y[i];
             cb = img_u[i] - 128;
@@ -185,7 +185,7 @@ __global__ void yuv2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g
 }
 
 
-__global__ void rgb2hsl_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
+__global__ void rgb2hsl_kernel(int img_size, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
     float *img_h, float *img_s, unsigned char *img_l)
 {
     int i = threadIdx.x + blockDim.x * blockIdx.x;
@@ -244,7 +244,7 @@ __global__ void rgb2hsl_kernel(int s, unsigned char *img_r, unsigned char *img_g
 //Convert HSL to RGB, assume H, S in [0.0, 1.0] and L in [0, 255]
 //Output R,G,B in [0, 255]
 
-__global__ void hsl2rgb_kernel(int s, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
+__global__ void hsl2rgb_kernel(int img_size, unsigned char *img_r, unsigned char *img_g, unsigned char *img_b, 
     float *img_h, float *img_s, unsigned char *img_l)
 {
     int i = threadIdx.x + blockDim.x * blockIdx.x;
